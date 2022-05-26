@@ -1,0 +1,1 @@
+INSERT INTO "spring_boot".STUDENTS(name, age, time_from, time_to, course) VALUES ('Mick', 32, 13, 14, '{"name":"myname", "description":"disc"}' FORMAT JSON);
