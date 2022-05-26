@@ -1,4 +1,6 @@
-**
-*
+/*
+/*/
 !README.md
 !.gitignore
+!pom.xml
+!src
