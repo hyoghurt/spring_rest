@@ -10,6 +10,7 @@ public class Student {
     private Long id;
     private String name;
     private Integer age;
-    private Integer time_from;
-    private Integer time_to;
+    private Integer timeFrom;
+    private Integer timeTo;
+    private Course course;
 }
