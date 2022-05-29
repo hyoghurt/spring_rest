@@ -30,7 +30,7 @@ public class StudentServiceImpl implements StudentService{
     public Student getById(Long id) {
         Student student = studentCourseMapper.selectByIdStudent(id);
         if (student == null) {
-            throw new EntityNotFoundException("Student not found: " + id);
+            throw new EntityNotFoundException("Student not found");
         }
         return student;
     }
@@ -38,12 +38,9 @@ public class StudentServiceImpl implements StudentService{
     @Override
     @Transactional
     public Student update(Long id, Student student) {
-        if (studentCourseMapper.selectByIdStudent(id) == null) {
-            studentCourseMapper.insertStudent(student);
-        } else {
-            student.setId(id);
-            studentCourseMapper.updateStudent(student);
-        }
+        getById(id);
+        student.setId(id);
+        studentCourseMapper.updateStudent(student);
         return student;
     }
 
@@ -63,7 +60,7 @@ public class StudentServiceImpl implements StudentService{
     public void studentCourseEnrollment(StudentCourseEnrollment sce) {
         Course course = studentCourseMapper.selectByNameCourse(sce.getCourse());
         if (course == null) {
-            throw new EntityNotFoundException("course not found: " + sce.getCourse());
+            throw new EntityNotFoundException("Course not found");
         }
         for (Long id : sce.getListStudent()) {
             Student student = getById(id);

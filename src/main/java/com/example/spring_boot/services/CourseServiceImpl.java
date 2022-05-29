@@ -34,18 +34,16 @@ public class CourseServiceImpl implements CourseService{
     public Course getByName(String name) {
         Course courseSelect = studentCourseMapper.selectByNameCourse(name);
         if (courseSelect == null) {
-            throw new EntityNotFoundException("Course not found: " + name);
+            throw new EntityNotFoundException("Course not found");
         }
         return courseSelect;
     }
 
     @Override
     public Course update(String name, Course course) {
-        if (studentCourseMapper.selectByNameCourse(name) == null) {
-            add(course);
-        } else {
-            studentCourseMapper.updateCourse(course);
-        }
+        getByName(name);
+        course.setName(name);
+        studentCourseMapper.updateCourse(course);
         return course;
     }
 

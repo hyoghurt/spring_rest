@@ -2,6 +2,7 @@ package com.example.spring_boot.controllers;
 
 import com.example.spring_boot.models.Course;
 import com.example.spring_boot.services.CourseService;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class CourseController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Course newCourse(@RequestBody @Validated Course course) {
         return courseService.add(course);
     }

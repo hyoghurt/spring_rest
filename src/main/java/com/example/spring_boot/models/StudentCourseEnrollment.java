@@ -13,8 +13,8 @@ import java.util.List;
 public class StudentCourseEnrollment {
 
     @NotNull(message = "Field listStudent must not be empty")
-    List<Long> listStudent;
+    private List<Long> listStudent;
 
     @NotNull(message = "Field course must not be empty")
-    String course;
+    private String course;
 }

@@ -3,6 +3,7 @@ package com.example.spring_boot.controllers;
 import com.example.spring_boot.models.Student;
 import com.example.spring_boot.models.StudentCourseEnrollment;
 import com.example.spring_boot.services.StudentService;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class StudentController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Student newStudent(@RequestBody @Validated Student student) {
         return studentService.add(student);
     }
