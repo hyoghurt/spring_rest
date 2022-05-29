@@ -1,4 +1,5 @@
 DROP TABLE student;
+DROP TABLE course;
 
 CREATE TABLE student
 (
@@ -7,11 +8,13 @@ CREATE TABLE student
     age         INTEGER,
     time_from   INTEGER,
     time_to     INTEGER,
-    course      VARCHAR(32)
+    course      VARCHAR(32),
+    grade       INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS course
+CREATE TABLE course
 (
-    name        VARCHAR(32),
-    description VARCHAR(32)
+    name            VARCHAR(32),
+    description     VARCHAR(32),
+    required_grade  INTEGER
 );

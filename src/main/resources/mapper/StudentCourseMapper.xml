@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.spring_boot.mappers.StudentCourseMapper">
+
+    <resultMap id="baseCourseResultMap" type="com.example.spring_boot.models.Course">
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="requiredGrade" column="required_grade"/>
+    </resultMap>
+
+    <select id="selectCourseMaxAgeAvg"
+            resultType="com.example.spring_boot.models.Course" resultMap="baseCourseResultMap">
+        SELECT * FROM course
+        WHERE name IN
+              (
+                  SELECT course FROM student
+                  GROUP BY course
+                  ORDER BY AVG(age) DESC
+                  LIMIT 1
+              );
+    </select>
+
+    <!--    COURSE##########################################3-->
+
+    <select id="selectAllCourse"
+            resultType="com.example.spring_boot.models.Course" resultMap="baseCourseResultMap">
+        SELECT * FROM course
+    </select>
+
+    <select id="selectByNameCourse"
+            resultType="com.example.spring_boot.models.Course" resultMap="baseCourseResultMap">
+        SELECT * FROM course
+        WHERE name=#{name}
+    </select>
+
+    <insert id="insertCourse">
+        INSERT INTO course
+        VALUES (#{name}, #{description}, #{requiredGrade})
+    </insert>
+
+    <update id="updateCourse">
+        UPDATE course
+        SET description = #{description}, required_grade = #{requiredGrade}
+        WHERE name=#{name}
+    </update>
+
+    <delete id="deleteByNameCourse">
+        DELETE FROM course
+        WHERE name=#{name}
+    </delete>
+
+    <!--    STUDENT##########################################3-->
+
+    <resultMap id="SelectStudentResultMap" type="com.example.spring_boot.models.Student">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="age" column="age"/>
+        <result property="timeFrom" column="time_from"/>
+        <result property="timeTo" column="time_to"/>
+        <result property="grade" column="grade"/>
+        <association property="course" javaType="com.example.spring_boot.models.Course">
+            <result property="name" column="nameCourse"/>
+            <result property="description" column="description"/>
+            <result property="requiredGrade" column="required_grade"/>
+        </association>
+    </resultMap>
+
+    <select id="selectAllStudent"
+            resultType="com.example.spring_boot.models.Student"
+            resultMap="SelectStudentResultMap">
+        SELECT student.id as id,
+               student.name as name,
+               student.age as age,
+               student.time_from as time_from,
+               student.time_to as time_to,
+               student.course as nameCourse,
+               student.grade as grade,
+               course.description as description,
+               course.required_grade as required_grade
+        FROM student LEFT JOIN course ON student.course=course.name
+    </select>
+
+    <select id="selectByIdStudent"
+            resultType="com.example.spring_boot.models.Student"
+            resultMap="SelectStudentResultMap">
+        SELECT student.id as id,
+               student.name as name,
+               student.age as age,
+               student.time_from as time_from,
+               student.time_to as time_to,
+               student.course as nameCourse,
+               student.grade as grade,
+               course.description as description,
+               course.required_grade as required_grade
+        FROM student LEFT JOIN course ON student.course=course.name WHERE student.id = #{id}
+    </select>
+
+    <insert id="insertStudent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO student(name, age, time_from, time_to, course, grade)
+        VALUES (#{name}, #{age}, #{timeFrom}, #{timeTo},
+                #{course,jdbcType=VARCHAR,typeHandler=com.example.spring_boot.mappers.CourseNameTypeHandler},
+                #{grade})
+    </insert>
+
+    <update id="updateStudent">
+        UPDATE student
+        SET name = #{name}, age = #{age}, time_from = #{timeFrom}, time_to = #{timeTo},
+            course = #{course,jdbcType=VARCHAR,typeHandler=com.example.spring_boot.mappers.CourseNameTypeHandler},
+            grade = #{grade}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteByIdStudent">
+        DELETE FROM student
+        WHERE id=#{id}
+    </delete>
+
+</mapper>

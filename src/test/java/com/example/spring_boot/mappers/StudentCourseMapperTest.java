@@ -7,75 +7,86 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Slf4j
-class StudentMapperTest {
+class StudentCourseMapperTest {
 
     @Autowired
-    StudentMapper studentMapper;
+    StudentCourseMapper studentCourseMapper;
+
+    @Test
+    public void myTest() {
+        List<Student> list = studentCourseMapper.selectAllStudent();
+        list.forEach(System.out::println);
+
+        List<Course> list1 = studentCourseMapper.selectAllCourse();
+        list1.forEach(System.out::println);
+    }
 
     @Test
     public void selectMaxAgeAvgCourseTest() {
-        Course course = studentMapper.selectCourseMaxAgeAvg();
+        Course course = studentCourseMapper.selectCourseMaxAgeAvg();
         if (course != null)
             System.out.println(course.toString());
     }
 
     @Test
     public void crudStudentTest() {
-        Course course = new Course("c++", "best course c++");
+        Course course = new Course("c++", "best course c++", 4);
         Course courseSelect;
-        Student student = new Student(null, "Lik", 12, 15, 18, course);
+        Student student = new Student(null, "Lik", 12, 15, 18, course, 3);
         Student studentSelect;
 
-        studentMapper.insertCourse(course);
+        studentCourseMapper.insertCourse(course);
 
         log.info("TEST INSERT AND SELECT");
-        studentMapper.insertStudent(student);
+        studentCourseMapper.insertStudent(student);
         assertNotNull(student.getId());
-        studentSelect = studentMapper.selectByIdStudent(student.getId());
+        studentSelect = studentCourseMapper.selectByIdStudent(student.getId());
         assertEquals(student, studentSelect);
         log.info("TEST INSERT AND SELECT SUCCESS");
 
         log.info("TEST UPDATE");
         student.setName("chekkk_test");
         student.setAge(34);
-        studentMapper.updateStudent(student);
-        studentSelect = studentMapper.selectByIdStudent(student.getId());
+        studentCourseMapper.updateStudent(student);
+        studentSelect = studentCourseMapper.selectByIdStudent(student.getId());
         assertEquals(student, studentSelect);
         log.info("TEST UPDATE SUCCESS");
 
         log.info("TEST DELETE");
-        studentMapper.deleteByIdStudent(student.getId());
-        studentMapper.deleteByNameCourse(course.getName());
-        studentSelect = studentMapper.selectByIdStudent(student.getId());
+        studentCourseMapper.deleteByIdStudent(student.getId());
+        studentCourseMapper.deleteByNameCourse(course.getName());
+        studentSelect = studentCourseMapper.selectByIdStudent(student.getId());
         assertNull(studentSelect);
         log.info("TEST DELETE SUCCESS");
     }
 
     @Test
     public void crudCourseTest() {
-        Course course = new Course("go", "course go");
+        Course course = new Course("go", "course go", 4);
         Course courseSelect;
 
         log.info("TEST INSERT AND SELECT");
-        studentMapper.insertCourse(course);
-        courseSelect = studentMapper.selectByNameCourse(course.getName());
+        studentCourseMapper.insertCourse(course);
+        courseSelect = studentCourseMapper.selectByNameCourse(course.getName());
         assertEquals(course, courseSelect);
         log.info("TEST INSERT AND SELECT SUCCESS");
 
         log.info("TEST UPDATE");
         course.setDescription("c++ best course");
-        studentMapper.updateCourse(course);
-        courseSelect = studentMapper.selectByNameCourse(course.getName());
+        studentCourseMapper.updateCourse(course);
+        courseSelect = studentCourseMapper.selectByNameCourse(course.getName());
         assertEquals(course, courseSelect);
         log.info("TEST UPDATE SUCCESS");
 
         log.info("TEST DELETE");
-        studentMapper.deleteByNameCourse(course.getName());
-        courseSelect = studentMapper.selectByNameCourse(course.getName());
+        studentCourseMapper.deleteByNameCourse(course.getName());
+        courseSelect = studentCourseMapper.selectByNameCourse(course.getName());
         assertNull(courseSelect);
         log.info("TEST DELETE SUCCESS");
     }
