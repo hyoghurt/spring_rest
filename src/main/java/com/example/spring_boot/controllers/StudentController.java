@@ -1,8 +1,10 @@
 package com.example.spring_boot.controllers;
 
-import com.example.spring_boot.models.Student;
+import com.example.spring_boot.models.StudentResponse;
 import com.example.spring_boot.models.StudentCourseEnrollment;
+import com.example.spring_boot.models.StudentRequest;
 import com.example.spring_boot.services.StudentService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -14,37 +16,39 @@ import java.util.List;
 public class StudentController {
     private final StudentService studentService;
 
+    @Autowired
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
 
     @GetMapping
-    public List<Student> allStudent() {
-        return studentService.getAll();
+    public List<StudentResponse> allStudent() {
+        return studentService.getAllStudent();
     }
 
     @GetMapping("/{id}")
-    public Student getStudent(@PathVariable Long id) {
-        return studentService.getById(id);
+    public StudentResponse getStudent(@PathVariable Long id) {
+        return studentService.getByIdStudent(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Student newStudent(@RequestBody @Validated Student student) {
-        return studentService.add(student);
+    public StudentResponse newStudent(@RequestBody @Validated StudentRequest student) {
+        return studentService.saveStudent(student);
     }
 
     @PutMapping("/{id}")
-    public Student updateStudent(@PathVariable Long id, @RequestBody @Validated Student student) {
-        return studentService.update(id, student);
+    public StudentResponse updateStudent(@PathVariable Long id,
+                                         @RequestBody @Validated StudentRequest studentRequest) {
+        return studentService.updateStudent(id, studentRequest);
     }
 
     @DeleteMapping("/{id}")
     public void deleteStudent(@PathVariable Long id) {
-        studentService.deleteById(id);
+        studentService.deleteByIdStudent(id);
     }
 
-    @PostMapping("/course")
+    @PostMapping("/course_enrollment")
     public void studentCourseEnrollment(@RequestBody @Validated StudentCourseEnrollment sce) {
         studentService.studentCourseEnrollment(sce);
     }

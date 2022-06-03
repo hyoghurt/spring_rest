@@ -1,198 +1,190 @@
 package com.example.spring_boot.controllers;
 
 import com.example.spring_boot.models.Course;
-import com.example.spring_boot.models.Student;
+import com.example.spring_boot.models.StudentRequest;
+import com.example.spring_boot.models.StudentResponse;
 import com.example.spring_boot.models.StudentCourseEnrollment;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 @SpringBootTest
-@AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
+@WithMockUser(authorities = "ADMIN")
 class StudentControllerTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private final MockMvc mockMvc;
-    private final Course course = new Course("java", "java course", 4);
-    private final Student student = new Student(5L, "TestStud", 12, 23, 24, course, 3);
-    private final String url = "/student/5";
-    private final Map<String, String> notFoundJson;
-
     @Autowired
-    public StudentControllerTest(MockMvc mockMvc) {
-        this.mockMvc = mockMvc;
+    public StudentControllerTest(WebApplicationContext context) {
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
         notFoundJson = new HashMap<>();
         notFoundJson.put("message", "Student not found");
+        objectMapper = new ObjectMapper();
     }
 
+    private final MockMvc mockMvc;
+    private final Map<String, String> notFoundJson;
+    private final ObjectMapper objectMapper;
+
+    private final Course course = new Course("java", "java course", 4);
+    private final Course coursePython = new Course("python", "python course", 4);
+
+    private final StudentResponse studentActual1 =
+            new StudentResponse(1L, "Mick", 23, 14, 15, 3, course);
+    private final StudentResponse studentActual2 =
+            new StudentResponse(2L, "Lick", 13, 15, 16, 4, course);
+    private final StudentResponse studentActual3 =
+            new StudentResponse(3L, "Pick", 22, 12, 13, 3, coursePython);
+
     @Test
-    @Order(1)
     public void createStudentSuccess() throws Exception {
+        StudentRequest studentRequest =
+                new StudentRequest(null, "TestStud", 12, 23, 24, "java", 4);
+        StudentResponse studentResponse =
+                new StudentResponse(studentRequest, course);
+
         MvcResult mvcResult = mockMvc.perform(post("/student")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(student)))
+                .content(objectMapper.writeValueAsString(studentRequest)))
                 .andExpect(status().isCreated()).andReturn();
 
         String expectedString = mvcResult.getResponse().getContentAsString();
+        StudentResponse expectedStudent = objectMapper.readValue(expectedString, StudentResponse.class);
+        studentResponse.setId(expectedStudent.getId());
 
-        assertEquals(objectMapper.readValue(expectedString, Student.class), student);
+        assertNotNull(expectedStudent.getId());
+        assertEquals(objectMapper.readValue(expectedString, StudentResponse.class), studentResponse);
     }
 
     @Test
-    @Order(2)
     public void getStudentSuccess() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get(url))
+        MvcResult mvcResult = mockMvc.perform(get("/student/" + studentActual1.getId()))
                 .andExpect(status().isOk()).andReturn();
 
         String expectedString = mvcResult.getResponse().getContentAsString();
-
-        assertEquals(objectMapper.readValue(expectedString, Student.class), student);
+        assertEquals(objectMapper.readValue(expectedString, StudentResponse.class), studentActual1);
     }
 
     @Test
-    @Order(3)
-    public void getAllStudentSuccess() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/student"))
-                .andExpect(status().isOk()).andReturn();
-
-        String expectedString = mvcResult.getResponse().getContentAsString();
-
-        List<Student> students = objectMapper.readValue(expectedString, new TypeReference<>() {});
-
-        assertTrue(students.size() >= 3);
-        assertTrue(students.stream().anyMatch(s -> s.equals(student)));
-    }
-
-    @Test
-    @Order(4)
     public void updateStudentSuccess() throws Exception {
-        student.setAge(123);
+        studentActual2.setAge(123);
+        studentActual2.setTimeFrom(341);
+        StudentRequest studentRequest = new StudentRequest(studentActual2);
+        studentRequest.setId(null);
 
-        MvcResult mvcResult = mockMvc.perform(put(url)
+        MvcResult mvcResult = mockMvc.perform(put("/student/" + studentActual2.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(student)))
+                        .content(objectMapper.writeValueAsString(studentRequest)))
                 .andExpect(status().isOk()).andReturn();
 
         String expectedString = mvcResult.getResponse().getContentAsString();
 
-        assertEquals(objectMapper.readValue(expectedString, Student.class), student);
+        assertEquals(objectMapper.readValue(expectedString, StudentResponse.class), studentActual2);
     }
 
     @Test
-    @Order(5)
     public void studentCourseEnrollment() throws Exception {
         StudentCourseEnrollment sce = new StudentCourseEnrollment();
         sce.setCourse("java");
         sce.setListStudent(Arrays.asList(2L, 4L));
 
-        mockMvc.perform(post("/student/course")
+        mockMvc.perform(post("/student/course_enrollment")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sce)))
                 .andExpect(status().isOk());
 
-        MvcResult mvcResult = mockMvc.perform(get("/student"))
+        MvcResult mvcResult;
+        String expectedString;
+        StudentResponse studentResponse;
+
+        mvcResult = mockMvc.perform(get("/student/2"))
                 .andExpect(status().isOk()).andReturn();
+        expectedString = mvcResult.getResponse().getContentAsString();
+        studentResponse = objectMapper.readValue(expectedString, StudentResponse.class);
+        assertEquals(studentResponse.getCourse().getName(), "java");
 
-        String expectedString = mvcResult.getResponse().getContentAsString();
-        List<Student> students = objectMapper.readValue(expectedString, new TypeReference<>() {});
-
-        Student student1 = students.get(1);
-        Student student2 = students.get(3);
-
-        assertEquals(student1.getId(), 2L);
-        assertEquals(student2.getId(), 4L);
-        assertEquals(student1.getCourse().getName(), "java");
-        assertEquals(student2.getCourse().getName(), "java");
+        mvcResult = mockMvc.perform(get("/student/4"))
+                .andExpect(status().isOk()).andReturn();
+        expectedString = mvcResult.getResponse().getContentAsString();
+        studentResponse = objectMapper.readValue(expectedString, StudentResponse.class);
+        assertEquals(studentResponse.getCourse().getName(), "java");
     }
 
     @Test
-    @Order(6)
     public void studentCourseEnrollmentException() throws Exception {
         StudentCourseEnrollment sce = new StudentCourseEnrollment();
         sce.setCourse("python");
         sce.setListStudent(Arrays.asList(2L, 1L));
 
-        MvcResult mvcResult1 = mockMvc.perform(post("/student/course")
+        String expectedString;
+        MvcResult mvcResult;
+        StudentResponse studentResponse;
+
+        mvcResult = mockMvc.perform(post("/student/course_enrollment")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sce)))
                 .andExpect(status().isNotFound()).andReturn();
 
-
-        String expectedString = mvcResult1.getResponse().getContentAsString();
-        notFoundJson.put("message", "Student id: 1 grade < course requiredGrade");
+        expectedString = mvcResult.getResponse().getContentAsString();
+        notFoundJson.put("message", "StudentResponse id: 1 grade < course requiredGrade");
         String actualString = objectMapper.writeValueAsString(notFoundJson);
-
         assertEquals(expectedString, actualString);
 
-        MvcResult mvcResult = mockMvc.perform(get("/student"))
+        mvcResult = mockMvc.perform(get("/student/2"))
                 .andExpect(status().isOk()).andReturn();
-
         expectedString = mvcResult.getResponse().getContentAsString();
-        List<Student> students = objectMapper.readValue(expectedString, new TypeReference<>() {});
+        studentResponse = objectMapper.readValue(expectedString, StudentResponse.class);
+        assertEquals(studentResponse.getCourse().getName(), "java");
 
-        Student student1 = students.get(0);
-        Student student2 = students.get(1);
-
-        assertEquals(student1.getId(), 1L);
-        assertEquals(student2.getId(), 2L);
-        assertEquals(student1.getCourse().getName(), "java");
-        assertEquals(student2.getCourse().getName(), "java");
+        mvcResult = mockMvc.perform(get("/student/1"))
+                .andExpect(status().isOk()).andReturn();
+        expectedString = mvcResult.getResponse().getContentAsString();
+        studentResponse = objectMapper.readValue(expectedString, StudentResponse.class);
+        assertEquals(studentResponse.getCourse().getName(), "java");
     }
 
     @Test
-    @Order(7)
     public void deleteStudentSuccess() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(delete(url))
-                .andExpect(status().isOk()).andReturn();
+        mockMvc.perform(delete("/student/" + studentActual3.getId()))
+                .andExpect(status().isOk());
 
-        String expectedString = mvcResult.getResponse().getContentAsString();
-
-        assertEquals(expectedString, "");
+        mockMvc.perform(get("/student/" + studentActual3.getId()))
+                .andExpect(status().isNotFound());
     }
 
 
     //NOT_FOUND_TEST__________________________________________
 
     @Test
-    public void deleteStudentNotFound() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(delete("/student/432"))
-                .andExpect(status().isNotFound()).andReturn();
-
-        String expectedString = mvcResult.getResponse().getContentAsString();
-        String actualString = objectMapper.writeValueAsString(notFoundJson);
-
-        assertEquals(expectedString, actualString);
-    }
-
-    @Test
     public void updateStudentNotFound() throws Exception {
+        StudentRequest studentRequest = new StudentRequest(studentActual3);
+        studentRequest.setId(null);
+
         MvcResult mvcResult = mockMvc.perform(put("/student/234")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(student)))
+                        .content(objectMapper.writeValueAsString(studentRequest)))
                 .andExpect(status().isNotFound()).andReturn();
 
         String expectedString = mvcResult.getResponse().getContentAsString();

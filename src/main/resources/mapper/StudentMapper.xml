@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.spring_boot.mappers.StudentCourseMapper">
+<mapper namespace="com.example.spring_boot.mappers.StudentMapper">
 
     <resultMap id="baseCourseResultMap" type="com.example.spring_boot.models.Course">
         <result property="name" column="name"/>
@@ -54,7 +54,7 @@
 
     <!--    STUDENT##########################################3-->
 
-    <resultMap id="SelectStudentResultMap" type="com.example.spring_boot.models.Student">
+    <resultMap id="SelectStudentResultMap" type="com.example.spring_boot.models.StudentResponse">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="age" column="age"/>
@@ -69,7 +69,7 @@
     </resultMap>
 
     <select id="selectAllStudent"
-            resultType="com.example.spring_boot.models.Student"
+            resultType="com.example.spring_boot.models.StudentResponse"
             resultMap="SelectStudentResultMap">
         SELECT student.id as id,
                student.name as name,
@@ -80,11 +80,11 @@
                student.grade as grade,
                course.description as description,
                course.required_grade as required_grade
-        FROM student LEFT JOIN course ON student.course=course.name
+        FROM student LEFT JOIN course ON student.course = course.name
     </select>
 
     <select id="selectByIdStudent"
-            resultType="com.example.spring_boot.models.Student"
+            resultType="com.example.spring_boot.models.StudentResponse"
             resultMap="SelectStudentResultMap">
         SELECT student.id as id,
                student.name as name,
@@ -95,27 +95,24 @@
                student.grade as grade,
                course.description as description,
                course.required_grade as required_grade
-        FROM student LEFT JOIN course ON student.course=course.name WHERE student.id = #{id}
+        FROM student LEFT JOIN course ON student.course = course.name WHERE student.id = #{id}
     </select>
 
     <insert id="insertStudent" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO student(name, age, time_from, time_to, course, grade)
-        VALUES (#{name}, #{age}, #{timeFrom}, #{timeTo},
-                #{course,jdbcType=VARCHAR,typeHandler=com.example.spring_boot.mappers.CourseNameTypeHandler},
-                #{grade})
+        VALUES (#{name}, #{age}, #{timeFrom}, #{timeTo}, #{course}, #{grade})
     </insert>
 
     <update id="updateStudent">
         UPDATE student
         SET name = #{name}, age = #{age}, time_from = #{timeFrom}, time_to = #{timeTo},
-            course = #{course,jdbcType=VARCHAR,typeHandler=com.example.spring_boot.mappers.CourseNameTypeHandler},
-            grade = #{grade}
+            course = #{course}, grade = #{grade}
         WHERE id = #{id}
     </update>
 
     <delete id="deleteByIdStudent">
         DELETE FROM student
-        WHERE id=#{id}
+        WHERE id = #{id}
     </delete>
 
 </mapper>
