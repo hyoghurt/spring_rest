@@ -1,0 +1,16 @@
+<ehcache>
+    <diskStore path="java.io.tmpdir"/>
+    <defaultCache maxElementsInMemory="2000"
+                  eternal="false"
+                  memoryStoreEvictionPolicy="LFU"
+                  timeToIdleSeconds="600"
+                  timeToLiveSeconds="600"
+                  overflowToDisk="false"/>
+
+    <cache name="course"
+           maxElementsInMemory="2000"
+           eternal="false"
+           memoryStoreEvictionPolicy="LFU"
+           overflowToDisk="false"
+           timeToIdleSeconds="600"/>
+</ehcache>
